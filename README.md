@@ -6,7 +6,7 @@ This project aims to analyse the marks of the International Baccalaureate (IB) h
 ## Goals
 I wish to improve the accuracy of these predicted grades with machine learning. Some classification algorithms that I plan to use include k-nearest neighbours, random forests, support vector machines, naive Bayes, and neural networks. It is my intention to code each algorithm twice: once without any machine learning libraries and then again using scikit-learn.
 
-## Progress
+## Results
 Currently, I have only finished coding the k-nearest neighbours algorithm. For k=19, 59.14% of students will be correctly predicted with an MSE of 0.60.
 
 ## Acknowledgements
