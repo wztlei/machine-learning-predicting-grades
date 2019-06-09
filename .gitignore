@@ -102,3 +102,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# sensitive raw model data
+models/model_input_data.csv
