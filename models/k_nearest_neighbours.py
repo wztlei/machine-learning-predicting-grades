@@ -1,11 +1,11 @@
 import csv
 import math
-import matplotlib.pylab as plt
+import matplotlib.pyplot as plt
 from typing import List, Dict, Callable
 
 
 def load_dataset(filename: str, print_file: bool = False) -> List[List[str]]:
-    """Reads the csv file containing the data for this project.
+    '''Reads the csv file containing the data for this project.
 
     Args:
         filename: A string denoting the name of the file storing the data.
@@ -13,7 +13,7 @@ def load_dataset(filename: str, print_file: bool = False) -> List[List[str]]:
 
     Returns:
         A list of all of the lines cf text contained within the data file.
-    """
+    '''
 
     # Use a with/as block, which abstracts away opening and closing a file
     with open(filename) as csv_file:
@@ -22,7 +22,7 @@ def load_dataset(filename: str, print_file: bool = False) -> List[List[str]]:
 
         # Print the file contents if necessary
         if print_file:
-            print('len(lines) =', len(lines))
+            print("len(lines) =", len(lines))
 
             for line in lines:
                 print(line)
@@ -33,7 +33,7 @@ def load_dataset(filename: str, print_file: bool = False) -> List[List[str]]:
 
 def minkowski_distance(point_1: List[float], point_2: List[float],
                        p: int) -> float:
-    """Calculates the Minkowski distance between two points.
+    '''Calculates the Minkowski distance between two points.
 
     From Wikipedia: The Minkowski distance of order p between two points
     X = (x1, ... , xn) and Y = (y1, ... , yn) is defined as
@@ -46,7 +46,7 @@ def minkowski_distance(point_1: List[float], point_2: List[float],
 
         Returns:
             The Minkowski distance between point_1 and point_2.
-        """
+        '''
 
     sum_of_squares = 0
 
@@ -57,7 +57,7 @@ def minkowski_distance(point_1: List[float], point_2: List[float],
 
 
 def manhattan_distance(point_1: List[float], point_2: List[float]) -> float:
-    """Calculates the Manhattan distance between two points.
+    '''Calculates the Manhattan distance between two points.
 
     Args:
         point_1: The coordinates for the 1st point as a list.
@@ -65,12 +65,12 @@ def manhattan_distance(point_1: List[float], point_2: List[float]) -> float:
 
     Returns:
         The Manhattan distance between point_1 and point_2.
-    """
+    '''
     return minkowski_distance(point_1, point_2, 1)
 
 
 def euclidean_distance(point_1: List[float], point_2: List[float]) -> float:
-    """Calculates the Euclidean distance between two points.
+    '''Calculates the Euclidean distance between two points.
 
     Args:
         point_1: The coordinates for the 1st point as a list.
@@ -78,13 +78,13 @@ def euclidean_distance(point_1: List[float], point_2: List[float]) -> float:
 
     Returns:
         The Euclidean distance between point_1 and point_2.
-    """
+    '''
     return minkowski_distance(point_1, point_2, 2)
 
 
 def insert_nearest_neighbours(nearest_neighbours: List[Dict],
                               k: int, new_neighbour: Dict) -> None:
-    """Updates the list of nearest neighbours by inserting a new point
+    '''Updates the list of nearest neighbours by inserting a new point
 
     If nearest_neighbours has less than k items, then new_neighbour is inserted
     into nearest_neighbours. Otherwise, new_neighbour is inserted into the list
@@ -97,7 +97,7 @@ def insert_nearest_neighbours(nearest_neighbours: List[Dict],
             closest to the data point currently being classified.
         k: The maximum size of nearest_neighbours.
         new_neighbour: The new neighbouring data point to insert.
-    """
+    '''
     is_new_neighbour_inserted = False
 
     # Iterate through all possible positions to insert in nearest_neighbours
@@ -119,7 +119,7 @@ def insert_nearest_neighbours(nearest_neighbours: List[Dict],
 def k_nearest_neighbours_from_scratch (
         students: List[Dict], k: int,
         distance_function: Callable = euclidean_distance) -> Dict:
-    """Predicts students' final grades with the k-nearest neighbours algorithm.
+    '''Predicts students' final grades with the k-nearest neighbours algorithm.
 
     Args:
         students: A list of dicts storing the data for each student,
@@ -129,7 +129,7 @@ def k_nearest_neighbours_from_scratch (
             Defaults to the Euclidean distance.
     Returns:
         A dict storing the results of the predictive algorithm.
-    """
+    '''
     num_correct = 0
     sum_squared_errors = 0
 
@@ -176,15 +176,11 @@ def k_nearest_neighbours_from_scratch (
     hamming_loss = (num_students - percent_correct)/ num_students
     mean_squared_error = sum_squared_errors / num_students
 
-    # Print the results
-    print("percent_correct=", "%.2f" % percent_correct, ", mse=",
-          "%.2f" % mean_squared_error, sep="")
-
     # Return the results
     return {
-        "percent_correct": percent_correct,
-        "hamming_loss": hamming_loss,
-        "mean_squared_error": mean_squared_error
+        'percent_correct': percent_correct,
+        'hamming_loss': hamming_loss,
+        'mean_squared_error': mean_squared_error
     }
 
 
@@ -204,31 +200,40 @@ def main():
 
     k_list, percent_correct_list, mean_squared_error_list = [], [], []
 
+    # Iterate through the k-values with which to use the algorithm
     for k in range(1, 31):
-        print("for k=", k, ": ", sep="", end=" " if k < 10 else ""),
 
         results = k_nearest_neighbours_from_scratch(students, k)
+
+        # Print the results
+        print("for k=", k, ": ", sep="", end=" " if k < 10 else ""),
+        print("percent_correct=", "%.2f" % results['percent_correct'],
+              ", mse=", "%.2f" % results['mean_squared_error'], sep="")
+
+        # Append the results for each k-value to a list
         k_list.append(k)
-        percent_correct_list.append(results["percent_correct"])
-        mean_squared_error_list.append(results["mean_squared_error"])
+        percent_correct_list.append(results['percent_correct'])
+        mean_squared_error_list.append(results['mean_squared_error'])
 
-    # plt.subplot(nrows, ncols, index, **kwargs)
-
-    plt.figure(figsize=(7, 8))
+    # Prepare a window to graph the results
+    plt.gcf().canvas.set_window_title('Figures')
     plt.subplots_adjust(hspace=1)
 
+    # Plot the first scatter plot
     plt.subplot(2, 1, 1)
-    plt.title('Figure 1.1. Percent Correct vs. k-value')
+    plt.title('Figure 1. Percent Correct vs. k-value')
     plt.xlabel('k')
     plt.ylabel('Percent Correct')
     plt.scatter(k_list, percent_correct_list)
 
+    # Plot the second scatter plot
     plt.subplot(2, 1, 2)
-    plt.title('Figure 1.2. Mean Squared Error vs. k-value')
+    plt.title('Figure 2. Mean Squared Error vs. k-value')
     plt.xlabel('k')
     plt.ylabel('Mean Squared Error')
     plt.scatter(k_list, mean_squared_error_list)
 
+    # Display the scatter plots
     plt.show()
 
 
@@ -267,8 +272,6 @@ def main():
 # for k=28: percent_correct=55.56, mse=0.65
 # for k=29: percent_correct=56.27, mse=0.63
 # for k=30: percent_correct=56.27, mse=0.63
-
-
 
 
 if __name__ == '__main__':

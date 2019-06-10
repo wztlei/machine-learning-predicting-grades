@@ -2,9 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ad21405c-aff9-4669-8adf-d159c3bc6c1a" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/Project NEURON.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Project NEURON.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/WZTLEI.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/WZTLEI.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/k_nearest_neighbours.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/k_nearest_neighbours.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -49,8 +46,8 @@
       <file leaf-file-name="k_nearest_neighbours.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/models/k_nearest_neighbours.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-102">
-              <caret line="195" column="44" selection-start-line="195" selection-start-column="44" selection-end-line="195" selection-end-column="44" />
+            <state relative-caret-position="310">
+              <caret line="221" column="32" selection-start-line="221" selection-start-column="21" selection-end-line="221" selection-end-column="32" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -234,7 +231,7 @@
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.21503131" side_tool="true" weight="0.25053304" />
       <window_info anchor="bottom" id="Version Control" order="9" />
       <window_info anchor="bottom" id="Python Console" order="7" weight="0.32946146" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.7849687" visible="true" weight="0.13859275" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.7849687" visible="true" weight="0.36673775" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -484,8 +481,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/models/k_nearest_neighbours.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-102">
-          <caret line="195" column="44" selection-start-line="195" selection-start-column="44" selection-end-line="195" selection-end-column="44" />
+        <state relative-caret-position="310">
+          <caret line="221" column="32" selection-start-line="221" selection-start-column="21" selection-end-line="221" selection-end-column="32" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>
