@@ -2,6 +2,7 @@ import csv
 import math
 import matplotlib.pyplot as plt
 from typing import List, Dict, Callable
+from sklearn.neighbors import KNeighborsClassifier
 
 
 def load_dataset(filename: str, print_file: bool = False) -> List[List[str]]:
@@ -184,6 +185,41 @@ def k_nearest_neighbours_from_scratch (
     }
 
 
+def k_nearest_neighbours_with_sklearn(students: List[Dict], k: int) -> Dict:
+    k_neighbours_classifier = KNeighborsClassifier(n_neighbors=k)
+
+    semester_grades = [student['semester_grades'] for student in students]
+    final_grades = [student['final_grade'] for student in students]
+    k_neighbours_classifier.fit(semester_grades, final_grades)
+
+    num_correct = 0
+    sum_squared_errors = 0
+
+    # Iterate through every student to classify each one
+    for student in students:
+        prediction = k_neighbours_classifier.predict([student['semester_grades']])[0]
+
+        # Determine if the student was categorized correctly
+        if prediction == student['final_grade']:
+            num_correct += 1
+
+        # Update the sum of squared errors
+        sum_squared_errors += math.pow(prediction - student['final_grade'], 2)
+
+    # Calculate the results of the model
+    num_students = len(students)
+    percent_correct = num_correct / num_students * 100
+    hamming_loss = (num_students - percent_correct) / num_students
+    mean_squared_error = sum_squared_errors / num_students
+
+    # Return the results
+    return {
+        'percent_correct': percent_correct,
+        'hamming_loss': hamming_loss,
+        'mean_squared_error': mean_squared_error
+    }
+
+
 def main():
     # Retrieve the raw data from the csv file
     raw_data = load_dataset('model_input_data.csv', print_file=False)
@@ -198,7 +234,15 @@ def main():
         'final_grade': int(student[-1])
     } for student in raw_data_without_headers]
 
-    k_list, percent_correct_list, mean_squared_error_list = [], [], []
+    k = 19
+    results = k_nearest_neighbours_with_sklearn(students, k)
+
+    # Print the results
+    print("for k=", k, ": ", sep="", end=" " if k < 10 else ""),
+    print("percent_correct=", "%.2f" % results['percent_correct'],
+          ", mse=", "%.2f" % results['mean_squared_error'], sep="")
+
+    '''k_list, percent_correct_list, mean_squared_error_list = [], [], []
 
     # Iterate through the k-values with which to use the algorithm
     for k in range(1, 31):
@@ -234,8 +278,7 @@ def main():
     plt.scatter(k_list, mean_squared_error_list)
 
     # Display the scatter plots
-    plt.show()
-
+    plt.show()'''
 
 ##################################################
 # Error is minimized when k=19
