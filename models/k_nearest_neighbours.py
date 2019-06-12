@@ -3,10 +3,11 @@ import math
 import matplotlib.pyplot as plt
 from typing import List, Dict, Callable
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, hamming_loss, mean_squared_error
 
 
 def load_dataset(filename: str, print_file: bool = False) -> List[List[str]]:
-    '''Reads the csv file containing the data for this project.
+    """Reads the csv file containing the data for this project.
 
     Args:
         filename: A string denoting the name of the file storing the data.
@@ -14,7 +15,7 @@ def load_dataset(filename: str, print_file: bool = False) -> List[List[str]]:
 
     Returns:
         A list of all of the lines cf text contained within the data file.
-    '''
+    """
 
     # Use a with/as block, which abstracts away opening and closing a file
     with open(filename) as csv_file:
@@ -34,7 +35,7 @@ def load_dataset(filename: str, print_file: bool = False) -> List[List[str]]:
 
 def minkowski_distance(point_1: List[float], point_2: List[float],
                        p: int) -> float:
-    '''Calculates the Minkowski distance between two points.
+    """Calculates the Minkowski distance between two points.
 
     From Wikipedia: The Minkowski distance of order p between two points
     X = (x1, ... , xn) and Y = (y1, ... , yn) is defined as
@@ -47,7 +48,7 @@ def minkowski_distance(point_1: List[float], point_2: List[float],
 
         Returns:
             The Minkowski distance between point_1 and point_2.
-        '''
+        """
 
     sum_of_squares = 0
 
@@ -58,7 +59,7 @@ def minkowski_distance(point_1: List[float], point_2: List[float],
 
 
 def manhattan_distance(point_1: List[float], point_2: List[float]) -> float:
-    '''Calculates the Manhattan distance between two points.
+    """Calculates the Manhattan distance between two points.
 
     Args:
         point_1: The coordinates for the 1st point as a list.
@@ -66,12 +67,12 @@ def manhattan_distance(point_1: List[float], point_2: List[float]) -> float:
 
     Returns:
         The Manhattan distance between point_1 and point_2.
-    '''
+    """
     return minkowski_distance(point_1, point_2, 1)
 
 
 def euclidean_distance(point_1: List[float], point_2: List[float]) -> float:
-    '''Calculates the Euclidean distance between two points.
+    """Calculates the Euclidean distance between two points.
 
     Args:
         point_1: The coordinates for the 1st point as a list.
@@ -79,13 +80,13 @@ def euclidean_distance(point_1: List[float], point_2: List[float]) -> float:
 
     Returns:
         The Euclidean distance between point_1 and point_2.
-    '''
+    """
     return minkowski_distance(point_1, point_2, 2)
 
 
 def insert_nearest_neighbours(nearest_neighbours: List[Dict],
                               k: int, new_neighbour: Dict) -> None:
-    '''Updates the list of nearest neighbours by inserting a new point
+    """Updates the list of nearest neighbours by inserting a new point
 
     If nearest_neighbours has less than k items, then new_neighbour is inserted
     into nearest_neighbours. Otherwise, new_neighbour is inserted into the list
@@ -98,7 +99,7 @@ def insert_nearest_neighbours(nearest_neighbours: List[Dict],
             closest to the data point currently being classified.
         k: The maximum size of nearest_neighbours.
         new_neighbour: The new neighbouring data point to insert.
-    '''
+    """
     is_new_neighbour_inserted = False
 
     # Iterate through all possible positions to insert in nearest_neighbours
@@ -117,10 +118,10 @@ def insert_nearest_neighbours(nearest_neighbours: List[Dict],
         nearest_neighbours.pop()
 
 
-def k_nearest_neighbours_from_scratch (
+def k_nearest_neighbours_from_scratch(
         students: List[Dict], k: int,
         distance_function: Callable = euclidean_distance) -> Dict:
-    '''Predicts students' final grades with the k-nearest neighbours algorithm.
+    """Predicts students' final grades with the k-nearest neighbours algorithm.
 
     Args:
         students: A list of dicts storing the data for each student,
@@ -130,7 +131,7 @@ def k_nearest_neighbours_from_scratch (
             Defaults to the Euclidean distance.
     Returns:
         A dict storing the results of the predictive algorithm.
-    '''
+    """
     num_correct = 0
     sum_squared_errors = 0
 
@@ -173,50 +174,41 @@ def k_nearest_neighbours_from_scratch (
 
     # Calculate the results of the model
     num_students = len(students)
-    percent_correct = num_correct / num_students * 100
-    hamming_loss = (num_students - percent_correct)/ num_students
-    mean_squared_error = sum_squared_errors / num_students
+    pc = num_correct / num_students * 100
+    mse = sum_squared_errors / num_students
+    hl = (num_students - num_correct)/ num_students
 
     # Return the results
     return {
-        'percent_correct': percent_correct,
-        'hamming_loss': hamming_loss,
-        'mean_squared_error': mean_squared_error
+        'percent_correct': pc,
+        'mean_squared_error': mse,
+        'hamming_loss': hl
     }
 
 
 def k_nearest_neighbours_with_sklearn(students: List[Dict], k: int) -> Dict:
     k_neighbours_classifier = KNeighborsClassifier(n_neighbors=k)
+    predictions = []
 
-    semester_grades = [student['semester_grades'] for student in students]
-    final_grades = [student['final_grade'] for student in students]
-    k_neighbours_classifier.fit(semester_grades, final_grades)
-
-    num_correct = 0
-    sum_squared_errors = 0
-
-    # Iterate through every student to classify each one
     for student in students:
-        prediction = k_neighbours_classifier.predict([student['semester_grades']])[0]
+        rest_semester = [s['semester_grades'] for s in students if s != student]
+        rest_final = [s['final_grade'] for s in students if s != student]
+        k_neighbours_classifier.fit(rest_semester, rest_final)
+        predictions.append(k_neighbours_classifier.predict(
+            [student['semester_grades']])[0])
 
-        # Determine if the student was categorized correctly
-        if prediction == student['final_grade']:
-            num_correct += 1
-
-        # Update the sum of squared errors
-        sum_squared_errors += math.pow(prediction - student['final_grade'], 2)
+    final_grades = [s['final_grade'] for s in students]
 
     # Calculate the results of the model
-    num_students = len(students)
-    percent_correct = num_correct / num_students * 100
-    hamming_loss = (num_students - percent_correct) / num_students
-    mean_squared_error = sum_squared_errors / num_students
+    pc = accuracy_score(final_grades, predictions) * 100
+    mse = mean_squared_error(final_grades, predictions)
+    hl = hamming_loss(final_grades, predictions)
 
     # Return the results
     return {
-        'percent_correct': percent_correct,
-        'hamming_loss': hamming_loss,
-        'mean_squared_error': mean_squared_error
+        'percent_correct': pc,
+        'mean_squared_error': mse,
+        'hamming_loss': hl
     }
 
 
@@ -234,25 +226,15 @@ def main():
         'final_grade': int(student[-1])
     } for student in raw_data_without_headers]
 
-    k = 19
-    results = k_nearest_neighbours_with_sklearn(students, k)
-
-    # Print the results
-    print("for k=", k, ": ", sep="", end=" " if k < 10 else ""),
-    print("percent_correct=", "%.2f" % results['percent_correct'],
-          ", mse=", "%.2f" % results['mean_squared_error'], sep="")
-
-    '''k_list, percent_correct_list, mean_squared_error_list = [], [], []
+    k_list, percent_correct_list, mean_squared_error_list = [], [], []
 
     # Iterate through the k-values with which to use the algorithm
     for k in range(1, 31):
-
         results = k_nearest_neighbours_from_scratch(students, k)
 
         # Print the results
-        print("for k=", k, ": ", sep="", end=" " if k < 10 else ""),
-        print("percent_correct=", "%.2f" % results['percent_correct'],
-              ", mse=", "%.2f" % results['mean_squared_error'], sep="")
+        print("for k={:2d}: percent_correct={:5.2f}, mse={:6.4f}".format(
+            k, results['percent_correct'], results['mean_squared_error']))
 
         # Append the results for each k-value to a list
         k_list.append(k)
@@ -278,43 +260,43 @@ def main():
     plt.scatter(k_list, mean_squared_error_list)
 
     # Display the scatter plots
-    plt.show()'''
+    plt.show()
 
 ##################################################
 # Error is minimized when k=19
 # for k=19: percent_correct=59.14, mse=0.60
 ##################################################
 
-# for k=1:  percent_correct=46.59, mse=0.93
-# for k=2:  percent_correct=45.16, mse=0.95
-# for k=3:  percent_correct=50.90, mse=0.96
-# for k=4:  percent_correct=52.33, mse=0.84
-# for k=5:  percent_correct=51.61, mse=0.79
-# for k=6:  percent_correct=52.33, mse=0.69
-# for k=7:  percent_correct=55.91, mse=0.63
-# for k=8:  percent_correct=53.76, mse=0.64
-# for k=9:  percent_correct=55.56, mse=0.65
-# for k=10: percent_correct=53.41, mse=0.65
-# for k=11: percent_correct=54.12, mse=0.64
-# for k=12: percent_correct=55.20, mse=0.63
-# for k=13: percent_correct=54.48, mse=0.64
-# for k=14: percent_correct=55.20, mse=0.63
-# for k=15: percent_correct=56.27, mse=0.63
-# for k=16: percent_correct=56.63, mse=0.62
-# for k=17: percent_correct=57.35, mse=0.62
-# for k=18: percent_correct=55.91, mse=0.63
-# for k=19: percent_correct=59.14, mse=0.60
-# for k=20: percent_correct=55.91, mse=0.63
-# for k=21: percent_correct=55.91, mse=0.63
-# for k=22: percent_correct=54.48, mse=0.65
-# for k=23: percent_correct=56.63, mse=0.63
-# for k=24: percent_correct=54.84, mse=0.66
-# for k=25: percent_correct=56.63, mse=0.64
-# for k=26: percent_correct=56.27, mse=0.63
-# for k=27: percent_correct=56.63, mse=0.64
-# for k=28: percent_correct=55.56, mse=0.65
-# for k=29: percent_correct=56.27, mse=0.63
-# for k=30: percent_correct=56.27, mse=0.63
+# for k= 1: percent_correct=46.59, mse=0.9319
+# for k= 2: percent_correct=45.16, mse=0.9498
+# for k= 3: percent_correct=50.90, mse=0.9606
+# for k= 4: percent_correct=52.33, mse=0.8351
+# for k= 5: percent_correct=51.61, mse=0.7921
+# for k= 6: percent_correct=52.33, mse=0.6882
+# for k= 7: percent_correct=55.91, mse=0.6344
+# for k= 8: percent_correct=53.76, mse=0.6380
+# for k= 9: percent_correct=55.56, mse=0.6487
+# for k=10: percent_correct=53.41, mse=0.6487
+# for k=11: percent_correct=54.12, mse=0.6416
+# for k=12: percent_correct=55.20, mse=0.6308
+# for k=13: percent_correct=54.48, mse=0.6380
+# for k=14: percent_correct=55.20, mse=0.6308
+# for k=15: percent_correct=56.27, mse=0.6308
+# for k=16: percent_correct=56.63, mse=0.6165
+# for k=17: percent_correct=57.35, mse=0.6201
+# for k=18: percent_correct=55.91, mse=0.6344
+# for k=19: percent_correct=59.14, mse=0.6022
+# for k=20: percent_correct=55.91, mse=0.6344
+# for k=21: percent_correct=55.91, mse=0.6344
+# for k=22: percent_correct=54.48, mse=0.6487
+# for k=23: percent_correct=56.63, mse=0.6272
+# for k=24: percent_correct=54.84, mse=0.6559
+# for k=25: percent_correct=56.63, mse=0.6380
+# for k=26: percent_correct=56.27, mse=0.6308
+# for k=27: percent_correct=56.63, mse=0.6380
+# for k=28: percent_correct=55.56, mse=0.6487
+# for k=29: percent_correct=56.27, mse=0.6308
+# for k=30: percent_correct=56.27, mse=0.6308
 
 
 if __name__ == '__main__':
