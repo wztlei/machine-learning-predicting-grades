@@ -5,6 +5,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, hamming_loss, mean_squared_error
 from sklearn.naive_bayes import GaussianNB
 
+
 def cross_validation(students, classifier, n_splits=10, ):
     kf = KFold(n_splits=n_splits, shuffle=True)
     semester_grades = [s['semester_grades'] for s in students]
@@ -59,11 +60,31 @@ def k_nearest_neighbours_classifier(
     }
 
 
+def gaussian_naive_bayes_classifier(
+        train_semester_grades, train_final_grades,
+        test_semester_grades, test_final_grades):
+    gaussian_nb_classifier = GaussianNB()
+    gaussian_nb_classifier.fit(train_semester_grades, train_final_grades)
+    predictions = gaussian_nb_classifier.predict(test_semester_grades)
+
+    # Calculate the results of the model
+    pc = accuracy_score(test_final_grades, predictions) * 100
+    mse = mean_squared_error(test_final_grades, predictions)
+    hl = hamming_loss(test_final_grades, predictions)
+
+    # Return the results
+    return {
+        'percent_correct': pc,
+        'mean_squared_error': mse,
+        'hamming_loss': hl
+    }
+
+
 def parse_dataset(
         filename: str,
         print_file: bool = False,
-        ignore_imputation = True
-    ) -> List:
+        ignore_imputation=True
+) -> List:
     """Reads the csv file containing the data for this project.
 
     Args:
@@ -99,7 +120,8 @@ def parse_dataset(
         students = [{
             'id': student[0],
             'year': student[1],
-            'semester_grades': [float(grade) for grade in student[2:grades_end_index]],
+            'semester_grades': [float(grade) for grade in
+                                student[2:grades_end_index]],
             'predicted_grade': int(student[-2]),
             'final_grade': int(student[-1])
         } for student in raw_data_without_headers]
@@ -110,7 +132,10 @@ def parse_dataset(
 def main():
     # Retrieve the raw data from the csv file
     students = parse_dataset('model_input_data.csv', print_file=False)
-    cross_validation(students, k_nearest_neighbours_classifier, n_splits=len(students))
+    cross_validation(students, k_nearest_neighbours_classifier,
+                     n_splits=len(students))
+    cross_validation(students, gaussian_naive_bayes_classifier,
+                     n_splits=len(students))
 
 
 if __name__ == '__main__':
