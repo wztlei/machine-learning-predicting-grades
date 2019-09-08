@@ -1,12 +1,15 @@
 import csv
+import itertools
+import json
+import warnings
 from typing import List
-from sklearn.model_selection import KFold
-from sklearn.neighbors import KNeighborsClassifier
+
 from sklearn.metrics import accuracy_score, hamming_loss, mean_squared_error
-from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import KFold
+from sklearn.neighbors import KNeighborsClassifier, RadiusNeighborsClassifier
 
 
-def cross_validation(students, classifier, n_splits=10, ):
+def classify_and_cross_validate(students, sklearn_classifier, n_splits=10):
     kf = KFold(n_splits=n_splits, shuffle=True)
     semester_grades = [s['semester_grades'] for s in students]
     final_grades = [s['final_grade'] for s in students]
@@ -17,15 +20,16 @@ def cross_validation(students, classifier, n_splits=10, ):
         'hamming_loss': 0
     }
 
-    for train_indices, test_indices in kf.split(semester_grades):
+    for train_indices, test_indices in kf.split(semester_grades, final_grades):
         train_semester_grades = [semester_grades[i] for i in train_indices]
         train_final_grades = [final_grades[i] for i in train_indices]
         test_semester_grades = [semester_grades[i] for i in test_indices]
         test_final_grades = [final_grades[i] for i in test_indices]
 
-        set_stats = classifier(
+        set_stats = classify_with_sklearn(
             train_semester_grades, train_final_grades,
-            test_semester_grades, test_final_grades
+            test_semester_grades, test_final_grades,
+            sklearn_classifier
         )
 
         for key in cumulative_stats.keys():
@@ -36,36 +40,16 @@ def cross_validation(students, classifier, n_splits=10, ):
     for key in cumulative_stats.keys():
         avg_stats[key] = cumulative_stats[key] / n_splits
 
-    print(avg_stats)
+    # print(avg_stats)
+    return avg_stats
 
 
-def k_nearest_neighbours_classifier(
-        train_semester_grades, train_final_grades,
-        test_semester_grades, test_final_grades, k=19):
+def classify_with_sklearn(train_semester_grades, train_final_grades,
+                          test_semester_grades, test_final_grades,
+                          sklearn_classifier):
     # Use the sklearn k-neighbours classifier to predict grades
-    k_neighbours_classifier = KNeighborsClassifier(n_neighbors=k)
-    k_neighbours_classifier.fit(train_semester_grades, train_final_grades)
-    predictions = k_neighbours_classifier.predict(test_semester_grades)
-
-    # Calculate the results of the model
-    pc = accuracy_score(test_final_grades, predictions) * 100
-    mse = mean_squared_error(test_final_grades, predictions)
-    hl = hamming_loss(test_final_grades, predictions)
-
-    # Return the results
-    return {
-        'percent_correct': pc,
-        'mean_squared_error': mse,
-        'hamming_loss': hl
-    }
-
-
-def gaussian_naive_bayes_classifier(
-        train_semester_grades, train_final_grades,
-        test_semester_grades, test_final_grades):
-    gaussian_nb_classifier = GaussianNB()
-    gaussian_nb_classifier.fit(train_semester_grades, train_final_grades)
-    predictions = gaussian_nb_classifier.predict(test_semester_grades)
+    sklearn_classifier.fit(train_semester_grades, train_final_grades)
+    predictions = sklearn_classifier.predict(test_semester_grades)
 
     # Calculate the results of the model
     pc = accuracy_score(test_final_grades, predictions) * 100
@@ -104,7 +88,7 @@ def parse_dataset(
 
         # Print the file contents if necessary
         if print_file:
-            print("len(lines) =", len(raw_data))
+            print('len(lines) =', len(raw_data))
 
             for line in raw_data:
                 print(line)
@@ -129,13 +113,131 @@ def parse_dataset(
         return students
 
 
+def optimize_KNeighborsClassifier(students):
+    n_neighbors_list = range(1, 31)
+    weights_list = ['uniform', 'distance']
+    # algorithm_list = ['auto', 'ball_tree', 'kd_tree', 'brute']
+    p_list = range(1, 5)
+    metric_list = ['minkowski', 'chebyshev', 'canberra', 'braycurtis']
+    list_of_args = [n_neighbors_list, weights_list, p_list, metric_list]
+
+    count = 1
+    best_stats = None
+    best_args = None
+
+    for n_neighbors, weights, p, metric in itertools.product(*list_of_args):
+        if metric != 'minkowski' and p != p_list[0]:
+            continue
+
+        stats = classify_and_cross_validate(
+            students, KNeighborsClassifier(
+                n_neighbors=n_neighbors,
+                weights=weights,
+                p=p,
+                metric=metric
+            ), n_splits=10)
+
+        if best_stats is None \
+                or stats['percent_correct'] > best_stats['percent_correct']:
+            best_stats = stats
+            best_args = {
+                'n_neighbors': n_neighbors,
+                'weights': weights,
+                'p': p,
+                'metric': metric
+            }
+
+        if count % 10 == 0:
+            print(count)
+        count += 1
+
+    print(json.dumps(best_stats, indent=2))
+    print(json.dumps(best_args, indent=2))
+
+    # Sample Results:
+    # {
+    #   "percent_correct": 60.91269841269841,
+    #   "mean_squared_error": 0.5623015873015873,
+    #   "hamming_loss": 0.3908730158730159
+    # }
+    # {
+    #   "n_neighbors": 15,
+    #   "weights": "uniform",
+    #   "p": 1,
+    #   "metric": "minkowski"
+    # }
+
+
+def optimize_RadiusNeighborsClassifier(students):
+    radius_list = range(80, 150, 10)
+    weights_list = ['uniform', 'distance']
+    # algorithm_list = ['auto', 'ball_tree', 'kd_tree', 'brute']
+    p_list = range(1, 5)
+    metric_list = ['minkowski', 'chebyshev', 'canberra', 'braycurtis']
+    list_of_args = [radius_list, weights_list, p_list, metric_list]
+
+    count = 1
+    best_stats = None
+    best_args = None
+
+    for radius, weights, p, metric in itertools.product(*list_of_args):
+        if metric != 'minkowski' and p != p_list[0]:
+            continue
+
+        stats = classify_and_cross_validate(
+            students, RadiusNeighborsClassifier(
+                radius=radius,
+                weights=weights,
+                p=p,
+                metric=metric,
+                outlier_label=1
+            ), n_splits=10)
+
+        if best_stats is None \
+                or stats['percent_correct'] > best_stats['percent_correct']:
+            best_stats = stats
+            best_args = {
+                'radius': radius,
+                'weights': weights,
+                'p': p,
+                'metric': metric
+            }
+
+        if count % 10 == 0:
+            print(count)
+        count += 1
+
+    print(json.dumps(best_stats, indent=2))
+    print(json.dumps(best_args, indent=2))
+
+    # Sample Result:
+    # {
+    #   "percent_correct": 53.79629629629629,
+    #   "mean_squared_error": 0.7914021164021163,
+    #   "hamming_loss": 0.4620370370370369
+    # }
+    # {
+    #   "radius": 100,
+    #   "weights": "distance",
+    #   "p": 1,
+    #   "metric": "minkowski"
+    # }
+
 def main():
     # Retrieve the raw data from the csv file
+    warnings.simplefilter(action='ignore', category=FutureWarning)
     students = parse_dataset('model_input_data.csv', print_file=False)
-    cross_validation(students, k_nearest_neighbours_classifier,
-                     n_splits=len(students))
-    cross_validation(students, gaussian_naive_bayes_classifier,
-                     n_splits=len(students))
+
+    #optimize_KNeighborsClassifier(students)
+    optimize_RadiusNeighborsClassifier(students)
+
+    # print('Set 3')
+    # classify_and_cross_validate(students, k_nearest_neighbours_classifier,
+    #                  n_splits=len(students))
+    # classify_and_cross_validate(students, gaussian_naive_bayes_classifier,
+    #                  n_splits=len(students))
+    # classify_and_cross_validate(students, random_forest_classifier,
+    #                  n_splits=len(students))
 
 
 if __name__ == '__main__':

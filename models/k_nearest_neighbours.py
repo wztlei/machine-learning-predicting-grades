@@ -2,8 +2,6 @@ import csv
 import math
 import matplotlib.pyplot as plt
 from typing import List, Dict, Callable
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score, hamming_loss, mean_squared_error
 
 
 def load_dataset(filename: str, print_file: bool = False) -> List[List[str]]:
@@ -176,33 +174,7 @@ def k_nearest_neighbours_from_scratch(
     num_students = len(students)
     pc = num_correct / num_students * 100
     mse = sum_squared_errors / num_students
-    hl = (num_students - num_correct)/ num_students
-
-    # Return the results
-    return {
-        'percent_correct': pc,
-        'mean_squared_error': mse,
-        'hamming_loss': hl
-    }
-
-
-def k_nearest_neighbours_with_sklearn(students: List[Dict], k: int) -> Dict:
-    k_neighbours_classifier = KNeighborsClassifier(n_neighbors=k)
-    predictions = []
-
-    for student in students:
-        rest_semester = [s['semester_grades'] for s in students if s != student]
-        rest_final = [s['final_grade'] for s in students if s != student]
-        k_neighbours_classifier.fit(rest_semester, rest_final)
-        predictions.append(k_neighbours_classifier.predict(
-            [student['semester_grades']])[0])
-
-    final_grades = [s['final_grade'] for s in students]
-
-    # Calculate the results of the model
-    pc = accuracy_score(final_grades, predictions) * 100
-    mse = mean_squared_error(final_grades, predictions)
-    hl = hamming_loss(final_grades, predictions)
+    hl = (num_students - num_correct) / num_students
 
     # Return the results
     return {
