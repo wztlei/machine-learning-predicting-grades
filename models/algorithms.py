@@ -7,7 +7,9 @@ from typing import List
 from sklearn.metrics import accuracy_score, hamming_loss, mean_squared_error
 from sklearn.model_selection import KFold
 from sklearn.neighbors import KNeighborsClassifier, RadiusNeighborsClassifier
-from sklearn.naive_bayes import BernoulliNB, GaussianNB, MultinomialNB, ComplementNB
+from sklearn.naive_bayes import BernoulliNB, GaussianNB, MultinomialNB, \
+    ComplementNB
+from sklearn.ensemble import RandomForestClassifier
 
 
 def parse_dataset(
@@ -126,10 +128,10 @@ def classify_with_sklearn(train_semester_grades, train_final_grades,
 
 
 def optimize_k_neighbors_classifier(students):
-    n_neighbors_list = range(1, 31)
+    n_neighbors_list = list(range(1, 31))
     weights_list = ['uniform', 'distance']
     # algorithm_list = ['auto', 'ball_tree', 'kd_tree', 'brute']
-    p_list = range(1, 5)
+    p_list = list(range(1, 5))
     metric_list = ['minkowski', 'chebyshev', 'canberra', 'braycurtis']
     list_of_args = [n_neighbors_list, weights_list, p_list, metric_list]
 
@@ -189,10 +191,10 @@ def optimize_k_neighbors_classifier(students):
 
 
 def optimize_radius_neighbors_classifier(students):
-    radius_list = range(80, 150, 10)
+    radius_list = list(range(80, 160, 10))
     weights_list = ['uniform', 'distance']
     # algorithm_list = ['auto', 'ball_tree', 'kd_tree', 'brute']
-    p_list = range(1, 5)
+    p_list = list(range(1, 5))
     metric_list = ['minkowski', 'chebyshev', 'canberra', 'braycurtis']
     list_of_args = [radius_list, weights_list, p_list, metric_list]
 
@@ -280,6 +282,64 @@ def optimize_naive_bayes(students):
     return naive_bayes_models[best_model_name]
 
 
+def optimize_random_forest(students):
+    n_estimators_list = list(range(90, 300, 30))
+    criterion_list = ['gini', 'entropy']
+    max_depth_list = [None, *list(range(5, 8))]
+    min_samples_split_list = [2, 3]
+    min_samples_leaf_list = [1, 2]
+    list_of_args = [n_estimators_list, criterion_list, range(0, 5)]
+    # list_of_args = [n_estimators_list, criterion_list, max_depth_list,
+    #                 min_samples_split_list, min_samples_leaf_list]
+
+    count = 1
+    best_stats = None
+    best_args = None
+
+    # for n_estimators, criterion, max_depth, min_samples_split, min_samples_leaf \
+    #         in itertools.product(*list_of_args):
+    for n_estimators, criterion, rep in itertools.product(*list_of_args):
+        stats = classify_and_cross_validate(
+            students, RandomForestClassifier(
+                n_estimators=n_estimators,
+                criterion=criterion,
+                # max_depth=max_depth,
+                # min_samples_split=min_samples_split,
+                # min_samples_leaf=min_samples_leaf
+            )
+        )
+
+        if best_stats is None or \
+                stats['percent_correct'] > best_stats['percent_correct']:
+            best_stats = stats
+            best_args = {
+                'n_estimators': n_estimators,
+                'criterion': criterion,
+                # 'max_depth': max_depth,
+                # 'min_samples_split': min_samples_split,
+                # 'min_samples_leaf': min_samples_leaf
+            }
+
+        if count % 10 == 0:
+            print(count, n_estimators, criterion)
+            print(best_stats)
+            print(best_args)
+            print('')
+
+        count += 1
+
+    print(json.dumps(best_stats, indent=2))
+    print(json.dumps(best_args, indent=2))
+
+    return RandomForestClassifier(
+        n_estimators=best_args['n_estimators'],
+        criterion=best_args['criterion'],
+        # max_depth=best_args['max_depth'],
+        # min_samples_split=best_args['min_samples_split'],
+        # min_samples_leaf=best_args['min_samples_leaf']
+    )
+
+
 def main():
     # Retrieve the raw data from the csv file
     warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -289,16 +349,8 @@ def main():
 
     # optimize_k_neighbors_classifier(students)
     # optimize_radius_neighbors_classifier(students)
-    optimize_naive_bayes(students)
-
-
-    # print('Set 3')
-    # classify_and_cross_validate(students, k_nearest_neighbours_classifier,
-    #                  n_splits=len(students))
-    # classify_and_cross_validate(students, gaussian_naive_bayes_classifier,
-    #                  n_splits=len(students))
-    # classify_and_cross_validate(students, random_forest_classifier,
-    #                  n_splits=len(students))
+    # optimize_naive_bayes(students)
+    optimize_random_forest(students)
 
 
 if __name__ == '__main__':

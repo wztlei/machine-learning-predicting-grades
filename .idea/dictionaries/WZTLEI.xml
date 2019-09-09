@@ -3,6 +3,7 @@
     <words>
       <w>chebyshev</w>
       <w>dataset</w>
+      <w>gini</w>
       <w>minkowski</w>
       <w>multinomial</w>
       <w>sklearn</w>

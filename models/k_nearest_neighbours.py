@@ -1,5 +1,6 @@
 import csv
 import math
+import sys
 import matplotlib.pyplot as plt
 from typing import List, Dict, Callable
 
@@ -207,7 +208,7 @@ def main():
         # Print the results
         print("for k={:2d}: percent_correct={:5.2f}, mse={:6.4f}".format(
             k, results['percent_correct'], results['mean_squared_error']))
-
+        sys.stdout.flush()
         # Append the results for each k-value to a list
         k_list.append(k)
         percent_correct_list.append(results['percent_correct'])
