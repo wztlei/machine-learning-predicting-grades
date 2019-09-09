@@ -7,7 +7,7 @@ from typing import List
 from sklearn.metrics import accuracy_score, hamming_loss, mean_squared_error
 from sklearn.model_selection import KFold
 from sklearn.neighbors import KNeighborsClassifier, RadiusNeighborsClassifier
-
+from sklearn.naive_bayes import BernoulliNB, GaussianNB, MultinomialNB, ComplementNB
 
 def classify_and_cross_validate(students, sklearn_classifier, n_splits=10):
     kf = KFold(n_splits=n_splits, shuffle=True)
@@ -113,7 +113,7 @@ def parse_dataset(
         return students
 
 
-def optimize_KNeighborsClassifier(students):
+def optimize_k_neighbors_classifier(students):
     n_neighbors_list = range(1, 31)
     weights_list = ['uniform', 'distance']
     # algorithm_list = ['auto', 'ball_tree', 'kd_tree', 'brute']
@@ -151,8 +151,16 @@ def optimize_KNeighborsClassifier(students):
             print(count)
         count += 1
 
+    # Print the stats and args for the best model
     print(json.dumps(best_stats, indent=2))
     print(json.dumps(best_args, indent=2))
+
+    return KNeighborsClassifier(
+        n_neighbors=best_args['n_neighbors'],
+        weights=best_args['weights'],
+        p=best_args['p'],
+        metric=best_args['metric']
+    )
 
     # Sample Results:
     # {
@@ -168,7 +176,7 @@ def optimize_KNeighborsClassifier(students):
     # }
 
 
-def optimize_RadiusNeighborsClassifier(students):
+def optimize_radius_neighbors_classifier(students):
     radius_list = range(80, 150, 10)
     weights_list = ['uniform', 'distance']
     # algorithm_list = ['auto', 'ball_tree', 'kd_tree', 'brute']
@@ -209,6 +217,15 @@ def optimize_RadiusNeighborsClassifier(students):
 
     print(json.dumps(best_stats, indent=2))
     print(json.dumps(best_args, indent=2))
+    
+    # Print the stats and args for the best model
+    return RadiusNeighborsClassifier(
+        radius=best_args['radius'],
+        weights=best_args['weights'],
+        p=best_args['p'],
+        metric=best_args['metric'],
+        outlier_label=1
+    )
 
     # Sample Result:
     # {
@@ -223,13 +240,29 @@ def optimize_RadiusNeighborsClassifier(students):
     #   "metric": "minkowski"
     # }
 
+
+def optimize_naive_bayes(students):
+    naive_bayes_models = {
+        'BernoulliNB': BernoulliNB(),
+        'GaussianNB': GaussianNB(),
+        'MultinomialNB': MultinomialNB(),
+        'ComplementNB': ComplementNB()
+    }
+
+    for model in naive_bayes_models.values():
+        stats = classify_and_cross_validate(students, model, n_splits=10)
+        print(json.dumps(stats['percent_correct'], indent=2))
+
+
 def main():
     # Retrieve the raw data from the csv file
     warnings.simplefilter(action='ignore', category=FutureWarning)
     students = parse_dataset('model_input_data.csv', print_file=False)
 
-    #optimize_KNeighborsClassifier(students)
-    optimize_RadiusNeighborsClassifier(students)
+    # optimize_k_neighbors_classifier(students)
+    # optimize_radius_neighbors_classifier(students)
+    optimize_naive_bayes(students)
+
 
     # print('Set 3')
     # classify_and_cross_validate(students, k_nearest_neighbours_classifier,
