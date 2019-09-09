@@ -9,6 +9,67 @@ from sklearn.model_selection import KFold
 from sklearn.neighbors import KNeighborsClassifier, RadiusNeighborsClassifier
 from sklearn.naive_bayes import BernoulliNB, GaussianNB, MultinomialNB, ComplementNB
 
+
+def parse_dataset(
+        filename: str,
+        print_file: bool = False,
+        ignore_imputation=True,
+        round_grades=False
+) -> List:
+    """Reads the csv file containing the data for this project.
+
+    Args:
+        filename: A string denoting the name of the file storing the data.
+        print_file: True if the file is to be printed, and False otherwise.
+        ignore_imputation: True if the columns containing whether a value was
+            imputed are to be ignored, and False otherwise.
+
+    Returns:
+        A list of all of the students with data for each person.
+    """
+
+    # Use a with/as block, which abstracts away opening and closing a file
+    with open(filename) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        raw_data = list(csv_reader)
+
+        # Print the file contents if necessary
+        if print_file:
+            print('len(lines) =', len(raw_data))
+
+            for line in raw_data:
+                print(line)
+
+        raw_data_without_headers = raw_data[1:]
+
+        if ignore_imputation:
+            grades_end_index = -5
+        else:
+            grades_end_index = -2
+
+        # Organize the data into a list of dicts which each represent a student
+        if round_grades:
+            students = [{
+                'id': student[0],
+                'year': student[1],
+                'semester_grades': [float(grade) for grade in
+                                    student[2:grades_end_index]],
+                'predicted_grade': int(student[-2]),
+                'final_grade': int(student[-1])
+            } for student in raw_data_without_headers]
+        else:
+            students = [{
+                'id': student[0],
+                'year': student[1],
+                'semester_grades': [round(float(grade)) for grade in
+                                    student[2:grades_end_index]],
+                'predicted_grade': int(student[-2]),
+                'final_grade': int(student[-1])
+            } for student in raw_data_without_headers]
+
+        return students
+
+
 def classify_and_cross_validate(students, sklearn_classifier, n_splits=10):
     kf = KFold(n_splits=n_splits, shuffle=True)
     semester_grades = [s['semester_grades'] for s in students]
@@ -62,55 +123,6 @@ def classify_with_sklearn(train_semester_grades, train_final_grades,
         'mean_squared_error': mse,
         'hamming_loss': hl
     }
-
-
-def parse_dataset(
-        filename: str,
-        print_file: bool = False,
-        ignore_imputation=True
-) -> List:
-    """Reads the csv file containing the data for this project.
-
-    Args:
-        filename: A string denoting the name of the file storing the data.
-        print_file: True if the file is to be printed, and False otherwise.
-        ignore_imputation: True if the columns containing whether a value was
-            imputed are to be ignored, and False otherwise.
-
-    Returns:
-        A list of all of the students with data for each person.
-    """
-
-    # Use a with/as block, which abstracts away opening and closing a file
-    with open(filename) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        raw_data = list(csv_reader)
-
-        # Print the file contents if necessary
-        if print_file:
-            print('len(lines) =', len(raw_data))
-
-            for line in raw_data:
-                print(line)
-
-        raw_data_without_headers = raw_data[1:]
-
-        if ignore_imputation:
-            grades_end_index = -5
-        else:
-            grades_end_index = -2
-
-        # Organize the data into a list of dicts which each represent a student
-        students = [{
-            'id': student[0],
-            'year': student[1],
-            'semester_grades': [float(grade) for grade in
-                                student[2:grades_end_index]],
-            'predicted_grade': int(student[-2]),
-            'final_grade': int(student[-1])
-        } for student in raw_data_without_headers]
-
-        return students
 
 
 def optimize_k_neighbors_classifier(students):
@@ -217,7 +229,7 @@ def optimize_radius_neighbors_classifier(students):
 
     print(json.dumps(best_stats, indent=2))
     print(json.dumps(best_args, indent=2))
-    
+
     # Print the stats and args for the best model
     return RadiusNeighborsClassifier(
         radius=best_args['radius'],
@@ -249,15 +261,31 @@ def optimize_naive_bayes(students):
         'ComplementNB': ComplementNB()
     }
 
-    for model in naive_bayes_models.values():
-        stats = classify_and_cross_validate(students, model, n_splits=10)
-        print(json.dumps(stats['percent_correct'], indent=2))
+    best_stats = None
+    best_model_name = None
+
+    for model_name in naive_bayes_models.keys():
+        stats = classify_and_cross_validate(
+            students, naive_bayes_models[model_name], n_splits=10
+        )
+
+        if best_stats is None \
+                or stats['percent_correct'] > best_stats['percent_correct']:
+            best_stats = stats
+            best_model_name = model_name
+
+    print(json.dumps(best_stats, indent=2))
+    print(best_model_name)
+
+    return naive_bayes_models[best_model_name]
 
 
 def main():
     # Retrieve the raw data from the csv file
     warnings.simplefilter(action='ignore', category=FutureWarning)
-    students = parse_dataset('model_input_data.csv', print_file=False)
+    students = parse_dataset(
+        'model_input_data.csv', print_file=False, round_grades=False
+    )
 
     # optimize_k_neighbors_classifier(students)
     # optimize_radius_neighbors_classifier(students)
