@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ad21405c-aff9-4669-8adf-d159c3bc6c1a" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/WZTLEI.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/WZTLEI.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/algorithms.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/algorithms.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -44,11 +43,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="algorithms.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="algorithms.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/models/algorithms.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="65">
-              <caret line="613" column="93" lean-forward="true" selection-start-line="613" selection-start-column="85" selection-end-line="613" selection-end-column="93" />
+            <state relative-caret-position="213">
+              <caret line="619" column="32" selection-start-line="619" selection-start-column="32" selection-end-line="619" selection-end-column="32" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -56,10 +55,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="k_nearest_neighbours.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="k_nearest_neighbours.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/models/k_nearest_neighbours.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="34">
+            <state relative-caret-position="17">
               <caret line="2" column="10" selection-start-line="2" selection-start-column="10" selection-end-line="2" selection-end-column="10" />
             </state>
           </provider>
@@ -91,11 +90,12 @@
       <find>n_features</find>
       <find>range</find>
       <find>prepro</find>
+      <find>‘</find>
     </findStrings>
     <replaceStrings>
       <replace>&quot;&quot;&quot;</replace>
-      <replace>'</replace>
       <replace>optimize_random_forest_classifier</replace>
+      <replace>'</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -415,13 +415,6 @@
     <entry file="file://C:/Program Files (x86)/Python/Python 3.6.7/Lib/site-packages/sklearn/neighbors/__init__.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/models/k_nearest_neighbours.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34">
-          <caret line="2" column="10" selection-start-line="2" selection-start-column="10" selection-end-line="2" selection-end-column="10" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/model_input_data.csv">
       <provider selected="true" editor-type-id="csv-text-editor">
         <state relative-caret-position="17">
@@ -453,11 +446,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/models/algorithms.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="65">
-          <caret line="613" column="93" lean-forward="true" selection-start-line="613" selection-start-column="85" selection-end-line="613" selection-end-column="93" />
+        <state relative-caret-position="213">
+          <caret line="619" column="32" selection-start-line="619" selection-start-column="32" selection-end-line="619" selection-end-column="32" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/k_nearest_neighbours.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="2" column="10" selection-start-line="2" selection-start-column="10" selection-end-line="2" selection-end-column="10" />
         </state>
       </provider>
     </entry>

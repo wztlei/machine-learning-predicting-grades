@@ -4,17 +4,17 @@ import json
 import warnings
 from typing import List
 
-from sklearn import preprocessing
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, hamming_loss, mean_squared_error
 from sklearn.model_selection import KFold
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC, LinearSVC, NuSVC
-from sklearn.neighbors import KNeighborsClassifier, RadiusNeighborsClassifier
 from sklearn.naive_bayes import BernoulliNB, GaussianNB, MultinomialNB, \
     ComplementNB
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.neighbors import KNeighborsClassifier, RadiusNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.svm import SVC, LinearSVC
+from sklearn.tree import DecisionTreeClassifier
+
 
 def parse_dataset(
         filename: str,
@@ -29,6 +29,7 @@ def parse_dataset(
         print_file: True if the file is to be printed, and False otherwise.
         ignore_imputation: True if the columns containing whether a value was
             imputed are to be ignored, and False otherwise.
+        round_grades: True if the grades are to be rounded, and False otherwise.
 
     Returns:
         A list of all of the students with data for each person.
@@ -444,7 +445,7 @@ def optimize_random_forest_classifier(students):
         # min_samples_split=best_args['min_samples_split'],
         # min_samples_leaf=best_args['min_samples_leaf']
     )
-    
+
     # Sample Result:
     # {
     #   "percent_correct": 64.52380952380952,
@@ -674,7 +675,6 @@ def main():
     # optimize_svc(students)
     # optimize_multi_layer_perceptron(students)
     optimize_multi_layer_perceptron_layers(students)
-
 
 
 if __name__ == '__main__':
