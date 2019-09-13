@@ -6,6 +6,7 @@ from typing import List
 
 from sklearn.metrics import accuracy_score, hamming_loss, mean_squared_error
 from sklearn.model_selection import KFold
+from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier, RadiusNeighborsClassifier
 from sklearn.naive_bayes import BernoulliNB, GaussianNB, MultinomialNB, \
     ComplementNB
@@ -283,6 +284,25 @@ def optimize_naive_bayes(students):
     return naive_bayes_models[best_model_name]
 
 
+def optimize_logistic_regression(students):
+    solver_list = ['newton-cg', 'liblinear']
+    penalty_list = ['l2']
+    list_of_args = [solver_list, penalty_list]
+
+    for solver, penalty in itertools.product(*list_of_args):
+        stats = classify_and_cross_validate(students, LogisticRegression(
+            solver=solver,
+            penalty=penalty
+        ))
+        print(stats)
+
+    # The optimal solver determined empirically is newton-cg
+    return LogisticRegression(
+        solver='newton-cg',
+        penalty='l2'
+    )
+
+
 def optimize_decision_tree_classifier(students):
     criterion_list = ["gini"]
     splitter_list = ["best"]
@@ -356,9 +376,9 @@ def optimize_random_forest_classifier(students):
     max_features_list = list(range(1, 10))
 
     # criterion_list = ['gini', 'entropy']
-    # max_depth_list = [None, *list(range(5, 8))]
-    # min_samples_split_list = [2, 3]
-    # min_samples_leaf_list = [1, 2]
+    # max_depth_list = [None, *list(range(5, 9))]
+    # min_samples_split_list = [2, 4]
+    # min_samples_leaf_list = [1, 3]
     list_of_args = [n_estimators_list, max_features_list]
     # list_of_args = [n_estimators_list, criterion_list, max_depth_list,
     #                 min_samples_split_list, min_samples_leaf_list]
@@ -412,13 +432,16 @@ def optimize_random_forest_classifier(students):
     
     # Sample Result:
     # {
-    #   "percent_correct": 58.12169312169311,
-    #   "mean_squared_error": 0.601984126984127,
-    #   "hamming_loss": 0.4187830687830688
+    #   "percent_correct": 64.52380952380952,
+    #   "mean_squared_error": 0.5504761904761906,
+    #   "hamming_loss": 0.3547619047619048
     # }
     # {
     #   "n_estimators": 120,
     #   "max_features": 4
+    #   "max_depth': 5,
+    #   "min_samples_split": 3,
+    #   "min_samples_leaf": 3
     # }
 
 
@@ -432,16 +455,9 @@ def main():
     # optimize_k_neighbors_classifier(students)
     # optimize_radius_neighbors_classifier(students)
     # optimize_naive_bayes(students)
-    best = optimize_decision_tree_classifier(students)
-
-
-    for x in range(0, 20):
-        stats = classify_and_cross_validate(
-            students, best
-        )
-        print(stats)
-
+    # optimize_decision_tree_classifier(students)
     # optimize_random_forest_classifier(students)
+    optimize_logistic_regression(students)
 
 
 if __name__ == '__main__':
