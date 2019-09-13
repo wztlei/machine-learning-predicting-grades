@@ -9,6 +9,7 @@ from sklearn.model_selection import KFold
 from sklearn.neighbors import KNeighborsClassifier, RadiusNeighborsClassifier
 from sklearn.naive_bayes import BernoulliNB, GaussianNB, MultinomialNB, \
     ComplementNB
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 
 
@@ -282,13 +283,83 @@ def optimize_naive_bayes(students):
     return naive_bayes_models[best_model_name]
 
 
-def optimize_random_forest(students):
-    n_estimators_list = list(range(90, 300, 30))
-    criterion_list = ['gini', 'entropy']
-    max_depth_list = [None, *list(range(5, 8))]
-    min_samples_split_list = [2, 3]
-    min_samples_leaf_list = [1, 2]
-    list_of_args = [n_estimators_list, criterion_list, range(0, 5)]
+def optimize_decision_tree_classifier(students):
+    criterion_list = ["gini"]
+    splitter_list = ["best"]
+    max_depth_list = [None, *range(1, 8)]
+    min_samples_split_list = [*range(2, 9)]
+    min_samples_leaf_list = [*range(1, 8)]
+
+    list_of_args = [criterion_list, splitter_list, max_depth_list,
+                    min_samples_split_list, min_samples_leaf_list]
+
+    count = 1
+    best_stats = None
+    best_args = None
+
+    for criterion, splitter, max_depth, min_samples_split, min_samples_leaf \
+            in itertools.product(*list_of_args):
+        stats = classify_and_cross_validate(
+            students, DecisionTreeClassifier(
+                criterion=criterion,
+                splitter=splitter,
+                max_depth=max_depth,
+                min_samples_split=min_samples_split,
+                min_samples_leaf=min_samples_leaf
+            )
+        )
+
+        if best_stats is None or \
+                stats['percent_correct'] > best_stats['percent_correct']:
+            best_stats = stats
+            best_args = {
+                'criterion': criterion,
+                'splitter': splitter,
+                'max_depth': max_depth,
+                'min_samples_split': min_samples_split,
+                'min_samples_leaf': min_samples_leaf
+            }
+
+        if count % 10 == 0:
+            print(count)
+
+        count += 1
+
+    print(json.dumps(best_stats, indent=2))
+    print(json.dumps(best_args, indent=2))
+
+    return DecisionTreeClassifier(
+        criterion=best_args['criterion'],
+        splitter=best_args['splitter'],
+        max_depth=best_args['max_depth'],
+        min_samples_split=best_args['min_samples_split'],
+        min_samples_leaf=best_args['min_samples_leaf']
+    )
+
+    # Sample Output
+    # {
+    #   "percent_correct": 59.86772486772486,
+    #   "mean_squared_error": 0.6357142857142857,
+    #   "hamming_loss": 0.40132275132275125
+    # }
+    # {
+    #   "criterion": "gini",
+    #   "splitter": "best",
+    #   "max_depth": 3,
+    #   "min_samples_split": 6,
+    #   "min_samples_leaf": 4
+    # }
+
+
+def optimize_random_forest_classifier(students):
+    n_estimators_list = list(range(90, 250, 30))
+    max_features_list = list(range(1, 10))
+
+    # criterion_list = ['gini', 'entropy']
+    # max_depth_list = [None, *list(range(5, 8))]
+    # min_samples_split_list = [2, 3]
+    # min_samples_leaf_list = [1, 2]
+    list_of_args = [n_estimators_list, max_features_list]
     # list_of_args = [n_estimators_list, criterion_list, max_depth_list,
     #                 min_samples_split_list, min_samples_leaf_list]
 
@@ -296,13 +367,13 @@ def optimize_random_forest(students):
     best_stats = None
     best_args = None
 
-    # for n_estimators, criterion, max_depth, min_samples_split, min_samples_leaf \
-    #         in itertools.product(*list_of_args):
-    for n_estimators, criterion, rep in itertools.product(*list_of_args):
+    # for n_estimators, criterion, max_depth, min_samples_split,
+    # min_samples_leaf \ in itertools.product(*list_of_args):
+    for n_estimators, max_features in itertools.product(*list_of_args):
         stats = classify_and_cross_validate(
             students, RandomForestClassifier(
                 n_estimators=n_estimators,
-                criterion=criterion,
+                max_features=max_features
                 # max_depth=max_depth,
                 # min_samples_split=min_samples_split,
                 # min_samples_leaf=min_samples_leaf
@@ -314,14 +385,14 @@ def optimize_random_forest(students):
             best_stats = stats
             best_args = {
                 'n_estimators': n_estimators,
-                'criterion': criterion,
+                'max_features': max_features
                 # 'max_depth': max_depth,
                 # 'min_samples_split': min_samples_split,
                 # 'min_samples_leaf': min_samples_leaf
             }
 
-        if count % 10 == 0:
-            print(count, n_estimators, criterion)
+        if count % 5 == 0:
+            print(count, n_estimators, max_features)
             print(best_stats)
             print(best_args)
             print('')
@@ -333,11 +404,22 @@ def optimize_random_forest(students):
 
     return RandomForestClassifier(
         n_estimators=best_args['n_estimators'],
-        criterion=best_args['criterion'],
+        max_features=best_args['max_features']
         # max_depth=best_args['max_depth'],
         # min_samples_split=best_args['min_samples_split'],
         # min_samples_leaf=best_args['min_samples_leaf']
     )
+    
+    # Sample Result:
+    # {
+    #   "percent_correct": 58.12169312169311,
+    #   "mean_squared_error": 0.601984126984127,
+    #   "hamming_loss": 0.4187830687830688
+    # }
+    # {
+    #   "n_estimators": 120,
+    #   "max_features": 4
+    # }
 
 
 def main():
@@ -350,7 +432,16 @@ def main():
     # optimize_k_neighbors_classifier(students)
     # optimize_radius_neighbors_classifier(students)
     # optimize_naive_bayes(students)
-    optimize_random_forest(students)
+    best = optimize_decision_tree_classifier(students)
+
+
+    for x in range(0, 20):
+        stats = classify_and_cross_validate(
+            students, best
+        )
+        print(stats)
+
+    # optimize_random_forest_classifier(students)
 
 
 if __name__ == '__main__':
