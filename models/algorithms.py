@@ -377,6 +377,7 @@ def optimize_decision_tree_classifier(students):
     #   "min_samples_leaf": 4
     # }
 
+
 def optimize_adaboost_classifier(students):
     adaboost_classifier = AdaBoostClassifier(
         n_estimators=150,
@@ -462,6 +463,7 @@ def optimize_random_forest_classifier(students):
 
 
 def optimize_svc(students):
+    # noinspection PyPep8Naming
     C_list = [0.0001, 0.0005, 0.001, 0.1]
     kernel_list = ['linear', 'poly', 'rbf', 'sigmoid', 'precomputed']
 
@@ -516,6 +518,7 @@ def optimize_svc(students):
 
 def optimize_linear_svc(students):
     penalty_list = ['l2']
+    # noinspection PyPep8Naming
     C_list = [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1]
 
     list_of_args = [penalty_list, C_list]
@@ -613,7 +616,8 @@ def optimize_multi_layer_perceptron(students):
 
 
 def optimize_multi_layer_perceptron_layers(students):
-    hidden_layer_sizes_list= [(5, 2), (15,), (100,), (100, 10), (130, 10), (50, 10), (10, 10)]
+    hidden_layer_sizes_list = [(5, 2), (15,), (100,), (100, 10),
+                               (130, 10), (50, 10), (10, 10)]
 
     count = 1
     best_stats = None

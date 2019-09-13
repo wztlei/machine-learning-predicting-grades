@@ -7,6 +7,7 @@
       <w>gini</w>
       <w>minkowski</w>
       <w>multinomial</w>
+      <w>perceptron</w>
       <w>sklearn</w>
       <w>wikipedia</w>
     </words>
