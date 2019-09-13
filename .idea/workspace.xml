@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ad21405c-aff9-4669-8adf-d159c3bc6c1a" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/WZTLEI.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/WZTLEI.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/algorithms.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/algorithms.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -46,8 +47,8 @@
       <file leaf-file-name="algorithms.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/models/algorithms.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-700">
-              <caret line="298" column="47" selection-start-line="298" selection-start-column="47" selection-end-line="298" selection-end-column="47" />
+            <state relative-caret-position="65">
+              <caret line="613" column="93" lean-forward="true" selection-start-line="613" selection-start-column="85" selection-end-line="613" selection-end-column="93" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -89,6 +90,7 @@
       <find>'percen</find>
       <find>n_features</find>
       <find>range</find>
+      <find>prepro</find>
     </findStrings>
     <replaceStrings>
       <replace>&quot;&quot;&quot;</replace>
@@ -264,14 +266,14 @@
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.13987474" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.14926931" side_tool="true" visible="true" weight="0.3283582" />
+      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.151357" side_tool="true" visible="true" weight="0.3283582" />
       <window_info anchor="bottom" id="Version Control" order="9" />
       <window_info anchor="bottom" id="Python Console" order="7" weight="0.32946146" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.8507307" visible="true" weight="0.3283582" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.848643" visible="true" weight="0.3283582" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49731183" weight="0.39978677" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49582464" weight="0.39978677" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -293,7 +295,7 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="3" />
+      <option name="time" value="4" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
@@ -451,8 +453,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/models/algorithms.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-700">
-          <caret line="298" column="47" selection-start-line="298" selection-start-column="47" selection-end-line="298" selection-end-column="47" />
+        <state relative-caret-position="65">
+          <caret line="613" column="93" lean-forward="true" selection-start-line="613" selection-start-column="85" selection-end-line="613" selection-end-column="93" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>

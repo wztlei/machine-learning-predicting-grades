@@ -4,15 +4,17 @@ import json
 import warnings
 from typing import List
 
+from sklearn import preprocessing
 from sklearn.metrics import accuracy_score, hamming_loss, mean_squared_error
 from sklearn.model_selection import KFold
 from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC, LinearSVC, NuSVC
 from sklearn.neighbors import KNeighborsClassifier, RadiusNeighborsClassifier
 from sklearn.naive_bayes import BernoulliNB, GaussianNB, MultinomialNB, \
     ComplementNB
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.neural_network import MLPClassifier
 
 def parse_dataset(
         filename: str,
@@ -76,7 +78,11 @@ def parse_dataset(
 
 def classify_and_cross_validate(students, sklearn_classifier, n_splits=10):
     kf = KFold(n_splits=n_splits, shuffle=True)
+    # semester_grades = preprocessing.scale(
+    #     [s['semester_grades'] for s in students]
+    # )
     semester_grades = [s['semester_grades'] for s in students]
+
     final_grades = [s['final_grade'] for s in students]
 
     cumulative_stats = {
@@ -370,6 +376,15 @@ def optimize_decision_tree_classifier(students):
     #   "min_samples_leaf": 4
     # }
 
+def optimize_adaboost_classifier(students):
+    adaboost_classifier = AdaBoostClassifier(
+        n_estimators=150,
+        base_estimator=DecisionTreeClassifier(max_depth=1)
+    )
+    stats = classify_and_cross_validate(students, adaboost_classifier)
+    # TODO: Find a way to optimize Adaboost to increase the algorithm's speed
+    print(stats)
+
 
 def optimize_random_forest_classifier(students):
     n_estimators_list = list(range(90, 250, 30))
@@ -445,6 +460,203 @@ def optimize_random_forest_classifier(students):
     # }
 
 
+def optimize_svc(students):
+    C_list = [0.0001, 0.0005, 0.001, 0.1]
+    kernel_list = ['linear', 'poly', 'rbf', 'sigmoid', 'precomputed']
+
+    list_of_args = [C_list, kernel_list]
+
+    count = 1
+    best_stats = None
+    best_args = None
+
+    for C, kernel in itertools.product(*list_of_args):
+        stats = classify_and_cross_validate(
+            students, SVC(
+                # C=C,
+                kernel=kernel
+            )
+        )
+
+        if best_stats is None or \
+                stats['percent_correct'] > best_stats['percent_correct']:
+            best_stats = stats
+            best_args = {
+                'C': C,
+                'kernel': kernel
+            }
+
+        print(count)
+        print(json.dumps(best_stats, indent=2))
+        print(json.dumps(best_args, indent=2))
+        count += 1
+
+    print(json.dumps(best_stats, indent=2))
+    print(json.dumps(best_args, indent=2))
+
+    # TODO: Find a way to optimize SVC to increase the algorithm's speed
+
+    return SVC(
+        C=best_args['C'],
+        kernel=best_args['kernel']
+    )
+
+    # Sample Result:
+    # {
+    #   "percent_correct": 49.828042328042315,
+    #   "mean_squared_error": 0.7564814814814815,
+    #   "hamming_loss": 0.5017195767195768
+    # }
+    # {
+    #   "C": 0.0001,
+    #   "kernel": "linear"
+    # }
+
+
+def optimize_linear_svc(students):
+    penalty_list = ['l2']
+    C_list = [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1]
+
+    list_of_args = [penalty_list, C_list]
+
+    count = 1
+    best_stats = None
+    best_args = None
+
+    for penalty, C in itertools.product(*list_of_args):
+        stats = classify_and_cross_validate(
+            students, LinearSVC(
+                penalty=penalty,
+                C=C
+            )
+        )
+
+        if best_stats is None or \
+                stats['percent_correct'] > best_stats['percent_correct']:
+            best_stats = stats
+            best_args = {
+                'penalty': penalty,
+                'C': C,
+            }
+
+        print(count)
+        count += 1
+
+    print(json.dumps(best_stats, indent=2))
+    print(json.dumps(best_args, indent=2))
+
+    return LinearSVC(
+        penalty=best_args['penalty'],
+        C=best_args['C']
+    )
+
+    # Sample output
+    # {
+    #   "percent_correct": 47.31481481481482,
+    #   "mean_squared_error": 0.7947089947089947,
+    #   "hamming_loss": 0.5268518518518518
+    # }
+    # {
+    #   "penalty": "l2",
+    #   "C": 0.0005
+    # }
+
+
+def optimize_multi_layer_perceptron(students):
+    activation_list = ['identity', 'logistic', 'tanh', 'relu']
+    solver_list = ['lbfgs', 'sgd', 'adam']
+
+    list_of_args = [activation_list, solver_list]
+
+    count = 1
+    best_stats = None
+    best_args = None
+
+    for activation, solver in itertools.product(*list_of_args):
+        stats = classify_and_cross_validate(
+            students, MLPClassifier(
+                activation=activation,
+                solver=solver
+            )
+        )
+
+        if best_stats is None or \
+                stats['percent_correct'] > best_stats['percent_correct']:
+            best_stats = stats
+            best_args = {
+                'activation': activation,
+                'solver': solver,
+            }
+
+        print(count)
+        count += 1
+
+    print(json.dumps(best_stats, indent=2))
+    print(json.dumps(best_args, indent=2))
+
+    return MLPClassifier(
+        activation=best_args['activation'],
+        solver=best_args['solver']
+    )
+
+    # Sample Output:
+    # {
+    #   "percent_correct": 58.32275132275132,
+    #   "mean_squared_error": 0.5546296296296298,
+    #   "hamming_loss": 0.41677248677248686
+    # }
+    # {
+    #   "activation": "logistic",
+    #   "solver": "adam"
+    # }
+
+
+def optimize_multi_layer_perceptron_layers(students):
+    hidden_layer_sizes_list= [(5, 2), (15,), (100,), (100, 10), (130, 10), (50, 10), (10, 10)]
+
+    count = 1
+    best_stats = None
+    best_args = None
+
+    for hidden_layer_sizes in hidden_layer_sizes_list:
+        stats = classify_and_cross_validate(
+            students, MLPClassifier(
+                activation='logistic',
+                solver='adam',
+                hidden_layer_sizes=hidden_layer_sizes,
+            )
+        )
+
+        if best_stats is None or \
+                stats['percent_correct'] > best_stats['percent_correct']:
+            best_stats = stats
+            best_args = {
+                'hidden_layer_sizes': hidden_layer_sizes,
+            }
+
+        print(count)
+        count += 1
+
+    print(json.dumps(best_stats, indent=2))
+    print(json.dumps(best_args, indent=2))
+
+    return MLPClassifier(
+        hidden_layer_sizes=best_args['hidden_layer_sizes'],
+    )
+
+    # Sample Output:
+    # {
+    #   "percent_correct": 57.05555555555556,
+    #   "mean_squared_error": 0.665952380952381,
+    #   "hamming_loss": 0.42944444444444444
+    # }
+    # {
+    #   "hidden_layer_sizes": [
+    #     100
+    #   ]
+    # }
+
+
 def main():
     # Retrieve the raw data from the csv file
     warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -457,7 +669,12 @@ def main():
     # optimize_naive_bayes(students)
     # optimize_decision_tree_classifier(students)
     # optimize_random_forest_classifier(students)
-    optimize_logistic_regression(students)
+    # optimize_logistic_regression(students)
+    # optimize_adaboost_classifier(students)
+    # optimize_svc(students)
+    # optimize_multi_layer_perceptron(students)
+    optimize_multi_layer_perceptron_layers(students)
+
 
 
 if __name__ == '__main__':
